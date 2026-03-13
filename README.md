@@ -45,7 +45,7 @@ The goal is to understand and compare three approaches Spring offers for service
 │                                                     │
 │  GET /rest-template/{id}  →  RestTemplateService    │
 │  GET /web-client/{id}     →  WebClientService       │
-│  GET /feign/{id}          →  UserFeignClient        │
+│  GET /feign/{id}          →  UserFeignService       │
 │                                 │                   │
 └─────────────────────────────────┼───────────────────┘
                                   │ HTTP GET /users/{id}
@@ -76,7 +76,8 @@ microservices/
 │       │   └── UserFeignClient.java      # Feign declarative interface
 │       ├── service/
 │       │   ├── RestTemplateService.java  # Blocking HTTP client
-│       │   └── WebClientService.java     # Reactive HTTP client
+│       │   ├── WebClientService.java     # Reactive HTTP client
+│       │   └── UserFeignService.java     # Service layer wrapping the Feign client
 │       └── controller/
 │           └── UserController.java       # Exposes the 3 endpoints
 │
@@ -197,7 +198,23 @@ public interface UserFeignClient {
 
 - No implementation code — Spring generates the HTTP client automatically
 - Reads like a normal Java method call
+- The interface is wrapped in a `UserFeignService` to respect the layered architecture
 - Best choice for readability and maintainability
+
+---
+
+### Layered Architecture
+
+All three approaches follow the same consistent pattern:
+
+```
+Controller  →  Service            →  HTTP Client
+Controller  →  RestTemplateService →  RestTemplate
+Controller  →  WebClientService    →  WebClient
+Controller  →  UserFeignService    →  UserFeignClient (interface)
+```
+
+The controller never depends directly on any HTTP client — it always goes through a service layer. This keeps each layer focused on a single responsibility and makes the code easier to maintain and extend.
 
 ---
 
